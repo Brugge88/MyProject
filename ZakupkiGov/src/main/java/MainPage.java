@@ -1,12 +1,9 @@
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -45,7 +42,7 @@ public class MainPage {
 
             LOGGER.info("Дата размещения аукционов: " + date);
             parsePage(url);
-            ExcelFile excel = new ExcelFile(auctions, date, "D:/");
+            ExcelFile excel = new ExcelFile(auctions, date, path);
             excel.createExcelFile();
             LOGGER.info("Количество аукционов добавленное в базу: " + getAuctions().size());
 
@@ -64,13 +61,9 @@ public class MainPage {
 
         try {
             int a = countPage(url).get();
-            System.out.println(a);
             for (int i = 1; i <= a; i++) {
                 url = url.replaceAll("(pageNumber=)(\\d+)", "$1" + i);
                 getDocumentHtml(url).getAllElements().forEach(e -> {
-//                    if (e.select("div").attr("class").contains("search-results__total")) {
-//                        countRecords = Integer.parseInt(e.select("div.search-results__total").text().replaceAll("[^\\w]", ""));
-//                    }
                     if (e.select("div").attr("class").contains("registry-entry__header-mid__number")) {
                         Auction auction = new Auction("https://zakupki.gov.ru" + e.select("a").attr("href"));
                         auction.parseInfoAboutPurchase();
@@ -99,7 +92,6 @@ public class MainPage {
         return count;
     }
 
-    //Метод получает документ html
     private Document getDocumentHtml(String url) {
 
         Document document = null;

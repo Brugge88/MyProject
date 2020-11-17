@@ -5,8 +5,13 @@ import org.apache.logging.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
+
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 @Getter
@@ -14,43 +19,53 @@ import java.util.HashMap;
 public class ExcelFile {
     public HashMap<String, Auction> auctions = new HashMap<>();
     private final Logger LOGGER = LogManager.getLogger(ExcelFile.class);
-    private final String DATE;
-    private Workbook BOOK = new HSSFWorkbook();
-    private Sheet SHEET;
+    private String date;
+    private Workbook book = new HSSFWorkbook();
+    private Sheet sheet;
     private final String path;
 
     public ExcelFile(HashMap<String, Auction> auctions, String date) {
-        this.DATE = date;
+        this.date = date;
         this.auctions = auctions;
-        SHEET = BOOK.createSheet("Аукционы");
-        path = "data/Список аукционов_" + DATE + ".xls";
+        sheet = book.createSheet("Аукционы");
+        path = "data/Список аукционов_" + date + ".xls";
     }
     public ExcelFile(HashMap<String, Auction> auctions, String date, String path) {
-        this.DATE = date;
+        this.date = date;
         this.auctions = auctions;
-        SHEET = BOOK.createSheet("Аукционы");
-        this.path = path + "/Список аукционов_" + DATE + ".xls";
+        sheet = book.createSheet("Аукционы");
+        this.path = createDirAndFile(path);
     }
 
     public ExcelFile(Auction auction, String date) {
-        this.DATE = date;
+        this.date = date;
         auctions.put(auction.getNumber(), auction);
-        SHEET = BOOK.createSheet("Аукционы");
-        path = "data/Список аукционов_" + DATE + ".xls";
+        sheet = book.createSheet("Аукционы");
+        path = "data/Список аукционов_" + date + ".xls";
     }
     public ExcelFile(Auction auction, String date, String path) {
-        this.DATE = date;
+        this.date = date;
         auctions.put(auction.getNumber(), auction);
-        SHEET = BOOK.createSheet("Аукционы");
-        this.path = path + "/Список аукционов_" + DATE + ".xls";
+        sheet = book.createSheet("Аукционы");
+        this.path = createDirAndFile(path);
+    }
+    private String createDirAndFile (String path) {
+
+        File dir = new File(path + "data");
+        if(!Files.exists(Paths.get(dir.getPath()))) {
+            dir.mkdir();
+        }
+        File file = new File(dir + "/Список аукционов_" + date + ".xls");
+        return file.getPath();
     }
 
     public void createExcelFile() {
         try {
             headerTable();
             addRow();
-            BOOK.write(new FileOutputStream(path));
-            BOOK.close();
+
+                book.write(new FileOutputStream(path));
+                book.close();
 
         } catch (Exception ex) {
             LOGGER.debug(ex);
@@ -58,9 +73,9 @@ public class ExcelFile {
     }
 
     private void headerTable() {
-        Row row = SHEET.createRow(0); //Ряд
-        CellStyle style = BOOK.createCellStyle();
-        Font font = BOOK.createFont();
+        Row row = sheet.createRow(0);
+        CellStyle style = book.createCellStyle();
+        Font font = book.createFont();
         font.setFontName(HSSFFont.FONT_ARIAL);
         font.setBold(true);
         style.setFont(font);
@@ -85,7 +100,7 @@ public class ExcelFile {
     public void addRow() {
 
         auctions.forEach((k, v) -> {
-            Row row = SHEET.createRow(SHEET.getLastRowNum() + 1);
+            Row row = sheet.createRow(sheet.getLastRowNum() + 1);
             row.createCell(0).setCellValue(k);
             row.createCell(1).setCellValue(v.getPurchaseMethod());
             row.createCell(2).setCellValue(v.getDigitalPlatform());
@@ -95,8 +110,8 @@ public class ExcelFile {
             row.createCell(6).setCellValue(v.getCustomer());
             row.createCell(7).setCellValue(v.getSmallBusiness());
 
-            DataFormat format = BOOK.createDataFormat();
-            CellStyle dateStyle = BOOK.createCellStyle();
+            DataFormat format = book.createDataFormat();
+            CellStyle dateStyle = book.createCellStyle();
 
             dateStyle.setDataFormat(format.getFormat("m/d/yy"));
             row.createCell(8).setCellValue(v.getDeadlineDateTime());
@@ -113,7 +128,7 @@ public class ExcelFile {
             row.createCell(13).setCellValue(v.getTimeDelivery());
 
             for (int j = 0; j <= 13; j++) {
-                SHEET.autoSizeColumn(j);
+                sheet.autoSizeColumn(j);
             }
 
         });
@@ -123,13 +138,13 @@ public class ExcelFile {
 
         try  {
             FileInputStream inputStream = new FileInputStream(path);
-            BOOK = new HSSFWorkbook(inputStream);
-            SHEET = BOOK.getSheet("Аукционы");
+            book = new HSSFWorkbook(inputStream);
+            sheet = book.getSheet("Аукционы");
             addRow();
 
             FileOutputStream outputStream = new FileOutputStream(path);
-            BOOK.write(outputStream);
-            BOOK.close();
+            book.write(outputStream);
+            book.close();
 
         } catch (Exception ex) {
             LOGGER.debug(ex);

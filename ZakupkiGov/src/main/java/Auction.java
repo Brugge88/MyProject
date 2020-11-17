@@ -58,7 +58,6 @@ public class Auction {
         }
         return sections;
     }
-    //Метод получает документ html
     private Document getDocumentHtml(String url) {
 
         Document document = null;
@@ -136,7 +135,7 @@ public class Auction {
 
     }
 
-    public void calculateCommissionPlatform() {
+    private void calculateCommissionPlatform() {
         int num = smallBusiness.equals("ДА") ? 2000 : 5000;
         if (maxContractPrice <= num * 100) {
             commissionPlatform = maxContractPrice * 0.01;
