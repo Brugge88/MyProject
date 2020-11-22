@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration status="WARN">
+    <appenders>
+        <File name="FileLogger" fileName="logger.log">
+            <PatternLayout pattern="%d{dd.MM.yyyy HH:mm:ss} %p [%logger{36}] - %m%n"/>
+
+        </File>
+    </appenders>
+
+    <Loggers>
+        <Root level="debug">
+            <appender-ref ref="FileLogger"/>
+        </Root>
+    </Loggers>
+</configuration>
